@@ -12,6 +12,7 @@ import io.flutter.plugin.common.EventChannel
 import io.flutter.plugin.common.MethodCall
 import io.flutter.plugin.common.MethodChannel
 import io.flutter.plugin.common.MethodChannel.MethodCallHandler
+import no.nordicsemi.android.dfu.DfuBaseService
 import no.nordicsemi.android.dfu.DfuBaseService.NOTIFICATION_ID
 import no.nordicsemi.android.dfu.DfuProgressListenerAdapter
 import no.nordicsemi.android.dfu.DfuServiceController
@@ -84,6 +85,7 @@ class NordicDfuPlugin : FlutterPlugin, MethodCallHandler, EventChannel.StreamHan
         val numberOfPackets = call.argument<Int>("numberOfPackets")
         val dataDelay = call.argument<Int>("dataDelay")
         val numberOfRetries = call.argument<Int>("numberOfRetries")
+        val isBinOrHex = call.argument<Boolean>("isBinOrHex")
 
         val rebootTime = call.argument<Int>("rebootTime")?.toLong()
 
@@ -123,6 +125,7 @@ class NordicDfuPlugin : FlutterPlugin, MethodCallHandler, EventChannel.StreamHan
             numberOfPackets,
             dataDelay,
             numberOfRetries,
+            isBinOrHex,
             rebootTime
         )
     }
@@ -148,10 +151,16 @@ class NordicDfuPlugin : FlutterPlugin, MethodCallHandler, EventChannel.StreamHan
         numberOfPackets: Int?,
         dataDelay: Int?,
         numberOfRetries: Int?,
+        isBinOrHex: Boolean?,
         rebootTime: Long?
     ) {
 
-        val starter = DfuServiceInitiator(address).setZip(filePath)
+        val starter = DfuServiceInitiator(address)
+        if (isBinOrHex==true){
+            starter.setBinOrHex(DfuBaseService.TYPE_APPLICATION,filePath)
+        }else{
+            starter.setZip(filePath)
+        }
 
         if (name != null) starter.setDeviceName(name)
         if (enableUnsafeExperimentalButtonlessServiceInSecureDfu != null) {
